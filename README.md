@@ -12,7 +12,6 @@ Communication is through the serial port, the SmartXe has a serial with pads but
 
 This project is based on:
 
-- a ton of knowledge that exists in this forum https://community.arduboy.com/t/smart-response-xe-re-purposed-into-arduboy/6094/22
 - this library by amazing https://github.com/bitbank2/SmartResponseXE by bitbank
 - a ton of people how have done a lot of work to document the platform
 
