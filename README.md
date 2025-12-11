@@ -38,7 +38,15 @@ So I took a different approach, try to do everything from the pins exposed in th
 Then I would like to use the  device I connect to also program the smart xe, I was not able to do this using a lepotato but did work with a raspberry pi zero 2w.
 
 You can find also the board to connect the pi to the xe in the KicadBerryShield (should that be smartxeshield?)
+The idea is that the adapter board is screwed to the case instead of the cover for the battery, and then you can add a device that uses a 40 pin connector like the raspberry pi ones.
+Notice that the board  can have the pi in 2 possitions, 
+- one like the xe is a gigantic shield for the pi, in this case the pins face into the xe and you see the bottom of the pi.
+- the other one using the top two lines closer to the screw so the pins face out and you can use them to add another shield, in this case you should solder the pins on the lower part of the pi and the top of the pi face up.
+![My Image](KicadBerryShield/BACK_BOARD.jpg)
+![My Image](KicadBerryShield/SMARTXE_TOPI_ADAPTERBOARD.jpg)
 
+How the pi should fit when you use the top 2 lines
+![My Image](KicadBerryShield/piOnTheBackOfXe.jpg)
 
 After running lscpu
 ![My Image](photos/smartXe_001.jpg)
