@@ -22,6 +22,24 @@ There are a couple of optimizations:
 - If the command and the response are two lines, the screen is being "scrolled" up two lines and you print just the new lines
 - If you need to print everything, right now we are printing just the chars that are needed to cover the previous string in the screen
 
+## Progress
+
+I initially tried to make a board to use on the back of the smartxe with pogo pins to the places where I wanted to connect, this approach had several issues
+
+ - location issues, some of those pins are extremely small and I failed to put in the board a way to secure attachment to the xe board
+ - the serial 2 is tied to the keys, and caused issues, on top of that
+   - I had to remove to resistors to free the serial
+   - Then route those lines to the tdo and tdi to detect the keys and use the serial
+   - Serial is not wired
+ - You have to open the xe
+
+So I took a different approach, try to do everything from the pins exposed in the back of the XE, that required bitbanging a serial protocol through the tdo/tck/tms which took a couple tries to get fixed.
+
+Then I would like to use the  device I connect to also program the smart xe, I was not able to do this using a lepotato but did work with a raspberry pi zero 2w.
+
+You can find also the board to connect the pi to the xe in the KicadBerryShield (should that be smartxeshield?)
+
+
 After running lscpu
 ![My Image](photos/smartXe_001.jpg)
 
