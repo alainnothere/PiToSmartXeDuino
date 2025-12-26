@@ -33,6 +33,7 @@
 // square root  --> ESC
 // 8/12/2019 fdufnews added function to define scroll area
 //
+#include "Arduino.h"
 #include <Arduino.h>
 #include <avr/pgmspace.h>
 #include <avr/sleep.h>
@@ -42,8 +43,16 @@
 // Mapping of keyboard to GPIO pins
 //static byte rowPins[ROWS] = {6,35,34,8,9,0};
 //static byte colPins[COLS] = {4,A1,A3,2,1,25,16,19,23,22};
+
+
 const uint8_t rowPins[ROWS] = {0xe6, 0xb7, 0xb6, 0xb5, 0xb4, 0xe0};
 const uint8_t colPins[COLS] = {0xe4, 0xf1, 0xf3, 0xe2, 0xe1, 0xd7, 0xa0, 0xa5, 0xd5, 0xd4};
+// this ones below use tdo and tdi to read the keyboard, the ones above doesn't
+// const uint8_t rowPins[ROWS] = {0xe6, 0xb7, 0xb6, 0xb5, 0xb4, 0xf6};
+// const uint8_t colPins[COLS] = {0xe4, 0xf1, 0xf3, 0xe2, 0xf7, 0xd7, 0xa0, 0xa5, 0xd5, 0xd4};
+
+
+
 //extern static byte bKeyMap[COLS]; // bits indicating pressed keys
 static byte bOldKeyMap[COLS]; // previous map to look for pressed/released keys
 static byte bColorToByte[4] = {0, 0x49, 0x92, 0xff};
@@ -552,7 +561,7 @@ void SRXESetPosition(int x, int y, int cx, int cy)
 } /* SRXESetPosition() */
 
 
-//    SRXELoadBitmapRLE
+//  SRXELoadBitmapRLE
 //  load a bitmap in the display RAM
 //  input
 //    x, y coordinate of top left in the display
@@ -747,6 +756,19 @@ int SRXEWriteChar(int x, int y, char ch) {
   SRXEWriteDataBlock(bTemp, 16); // write character pattern
 
   return 0;
+}
+
+void SRXEKeyboardInit(void) {
+  // Initialize all row pins as INPUT_PULLUP
+  for (byte r = 0; r < ROWS; r++) {
+    mypinMode(rowPins[r], INPUT_PULLUP);
+  }
+  
+  // Initialize all column pins as INPUT (high impedance)
+  for (byte c = 0; c < COLS; c++) {
+    mypinMode(colPins[c], INPUT);
+    mydigitalWrite(colPins[c], HIGH);
+  }
 }
 
 //
@@ -1083,6 +1105,58 @@ int SRXEFlashRead(uint32_t ulAddr, uint8_t *pDest, int iLen)
   return 1;
 } /* SRXEFlashRead() */
 
+
+void testPF6_Row() {
+  // Initialize all column pins as INPUT (high impedance)
+  for (byte c = 0; c < COLS; c++) {
+    mypinMode(colPins[c], INPUT);
+    mydigitalWrite(colPins[c], HIGH);
+  }
+  
+  // Initialize all row pins as INPUT_PULLUP
+  for (byte r = 0; r < ROWS; r++) {
+    mypinMode(rowPins[r], INPUT_PULLUP);
+  }
+  
+  SRXEFill(0);
+  SRXEWriteString(0, 10, "Testing PF6 (Row 5)", FONT_LARGE, 3, 0);
+  SRXEWriteString(0, 35, "Press keys in Row 5:", FONT_SMALL, 2, 0);
+  SRXEWriteString(0, 50, "Sym,Tab,Esc,Exp,Spc", FONT_SMALL, 2, 0);
+  SRXEWriteString(0, 65, "comma,dot,M,Left,Right", FONT_SMALL, 2, 0);
+  
+  delay(2000);
+  
+  while(true) {
+    // Drive PF6 (rowPins[5]) LOW
+    mypinMode(rowPins[5], OUTPUT);
+    mydigitalWrite(rowPins[5], LOW);
+    
+    delay(1); // Small delay for signal to stabilize
+    
+    // Read all columns to see which keys are pressed
+    for (byte c = 0; c < COLS; c++) {
+      mypinMode(colPins[c], INPUT_PULLUP);
+      delay(1);
+      
+      if (mydigitalRead(colPins[c]) == LOW) {
+        // Key detected at this column
+        char buffer[50];
+        sprintf(buffer, "Col %d pressed!", c);
+        SRXEFill(0);
+        SRXEWriteString(0, 90, buffer, FONT_LARGE, 3, 0);
+        delay(300);
+      }
+      
+      mypinMode(colPins[c], INPUT);
+    }
+    
+    // Set row back to INPUT_PULLUP
+    mypinMode(rowPins[5], INPUT_PULLUP);
+    
+    delay(10);
+  }
+}
+
 uint8_t SRXEFlashReadByte(uint32_t ulAddr)
 {
   uint8_t i;
@@ -1097,12 +1171,39 @@ uint8_t SRXEFlashReadByte(uint32_t ulAddr)
   mydigitalWrite(CS_FLASH, HIGH); // de-activate
   return i;
 } /* SRXEFlashReadByte() */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //
 // Scan the rows and columns and store the results in the key map
 //
 void SRXEScanKeyboard(void)
 {
   byte r, c;
+  MCUCR &= ~(1 << JTD);  // First write
+  MCUCR &= ~(1 << JTD);  // Second write within 4 cycles  
 
   for (r = 0; r < ROWS; r++)
   {
@@ -1125,6 +1226,74 @@ void SRXEScanKeyboard(void)
     mypinMode(colPins[c], INPUT);
   } // for c
 } /* SRXEScanKeyboard() */
+
+//                ROW1|ROW2|ROW3|ROW4|ROW5|ROW6|ROW7|ROW8|ROW9|ROW10
+//           COL1    1|   2|   3|   4|   5|   6|   7|   8|   9|    0
+//           COL2    Q|   W|   E|   R|   T|   Y|   U|   I|   O|    P
+//           COL3    A|   S|   D|   F|   G|   H|   J|   K|   L| Bksp
+//           COL4 Shft|   Z|   X|   C|   V|   B|   N|Down|Entr|   Up
+//           COL5  Sym|Frac|Root| Exp| Spc|   ,|   .|   M|Left|Right
+//           COL6  SK1| SK2| SK3| SK4| SK5| SK6| SK7| SK8| SK9| SK10
+//const uint8_t rowPins[ROWS] = {0xe6, 0xb7, 0xb6, 0xb5, 0xb4, 0xf6};
+//const uint8_t colPins[COLS] = {0xe4, 0xf1, 0xf3, 0xe2, 0xf7, 0xd7, 0xa0, 0xa5, 0xd5, 0xd4};
+//
+// Simplified pin numbering scheme uses a hex number to specify the port number
+// and bit. Top 4 bits = port (B/D/E/F/G), bottom 3 bits specify the bit of the port
+// e.g. 0xB4 = PORTB, bit 4, 0Ax is for port G
+//
+//void mypinMode(uint8_t pin, uint8_t mode)
+//{
+//  uint8_t bit;
+//  volatile uint8_t *iPort, *iDDR;
+//
+//  bit = getPinInfo(pin, &iDDR, &iPort, 0);
+//  switch (mode)
+//  {
+//    case INPUT:
+//      *iDDR &= ~(1 << bit);
+//      break;
+//    case INPUT_PULLUP:
+//      *iDDR |= (1 << bit);
+//      *iPort |= (1 << bit); // set the output high, then set it as an input
+//      *iDDR &= ~(1 << bit);
+//      break;
+//    case OUTPUT:
+//      *iDDR |= (1 << bit);
+//      break;
+//  }
+//} /* mypinMode() */
+//
+//
+//void mydigitalWrite(uint8_t pin, uint8_t value)
+//{
+//  uint8_t bit;
+//  volatile uint8_t *iPort, *iDDR;
+//
+//  bit = getPinInfo(pin, &iDDR, &iPort, 0);
+//  if (value == LOW)
+//  {
+//    *iPort &= ~(1 << bit);
+//  }
+//  else
+//  {
+//    *iPort |= (1 << bit);
+//  }
+//} /* mydigitalWrite() */
+//
+//
+//uint8_t mydigitalRead(uint8_t pin)
+//{
+//  uint8_t bit;
+//  volatile uint8_t *iPort, *iDDR;
+//
+//  bit = getPinInfo(pin, &iDDR, &iPort, 1);
+//  if (*iPort & (1 << bit))
+//    return HIGH;
+//  else
+//    return LOW;
+//} /* mydigitalRead() */
+
+
 //
 // Return a pointer to the internal key map
 // (10 bytes with 6 bits each)

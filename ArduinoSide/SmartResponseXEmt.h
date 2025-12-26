@@ -76,6 +76,7 @@ void SRXEWriteDataBlock(unsigned char *ucBuf, int iLen);
 
 void SRXELoadBitmapRLE(int x, int y, const uint8_t *btmp);
 
+void testPF6_Row();
 //
 //  Set Scroll Area
 // inputs:
@@ -116,6 +117,9 @@ int SRXEWriteChar(int x, int y, char ch);
 // Fill the frame buffer with a byte pattern
 // e.g. all off (0x00) or all on (0xff)
 void SRXEFill(byte ucData);
+
+void SRXEKeyboardInit(void);
+
 //
 // Scan the rows and columns and store the results in the key map
 //
