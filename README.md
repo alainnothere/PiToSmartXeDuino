@@ -3,6 +3,11 @@
 Turn a forgotten classroom gadget into a portable Linux terminal.
 I have always liked those mono lcd pixelated displays and had to do something with this one.
 
+<img src="photos/adapterBoard_001.jpg" width="300">
+<img src="photos/adapterBoard_002.jpg" width="300">
+<img src="photos/adapterBoard_003.jpg" width="300">
+<img src="photos/adapterBoard_004.jpg" width="300">
+
 ## What is This?
 
 Remember those clicker devices schools used for quizzes? The SMART Response XE was one of them - a handheld unit with a full QWERTY keyboard and a monochrome screen that students used to answer questions. They were discontinued years ago and thousands ended up in surplus bins.
